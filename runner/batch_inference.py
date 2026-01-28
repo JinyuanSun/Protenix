@@ -236,6 +236,7 @@ def inference_jsons(
     enable_fusion=True,
     enable_tf32=True,
     msa_server_mode: str = "protenix",
+    save_s_and_z=False,
 ) -> None:
     """
     infer_json: json file or directory, will run infer with these jsons
@@ -277,6 +278,8 @@ def inference_jsons(
         enable_tf32,
     )
     configs = runner.configs
+    if save_s_and_z:
+        configs['save_s_and_z'] = True
     for idx, infer_json in enumerate(tqdm.tqdm(infer_jsons)):
         try:
             configs["input_json_path"] = update_infer_json(
@@ -356,6 +359,12 @@ def protenix_cli():
     default="protenix",
     help="msa search mode, protenix or colabfold",
 )
+@click.option(
+    "--save_s_and_z",
+    type=bool,
+    default=False,
+    help="save s and z predicted by pairform",
+)
 def predict(
     input,
     out_dir,
@@ -373,6 +382,7 @@ def predict(
     enable_fusion,
     enable_tf32,
     msa_server_mode,
+    save_s_and_z
 ):
     """
     predict: Run predictions with protenix.
@@ -435,6 +445,7 @@ def predict(
         enable_fusion=enable_fusion,
         enable_tf32=enable_tf32,
         msa_server_mode=msa_server_mode,
+        save_s_and_z=save_s_and_z,
     )
 
 

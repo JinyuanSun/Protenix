@@ -386,6 +386,13 @@ class Protenix(nn.Module):
             "pde": _cat(pred_dicts, "pde"),
             "resolved": _cat(pred_dicts, "resolved"),
         }
+        if pred_dicts and "pairformer_s" in pred_dicts[0]:
+            all_pred_dict["pairformer_s"] = torch.stack(
+                [x["pairformer_s"] for x in pred_dicts], dim=0
+            )
+            all_pred_dict["pairformer_z"] = torch.stack(
+                [x["pairformer_z"] for x in pred_dicts], dim=0
+            )
 
         all_log_dict = simple_merge_dict_list(log_dicts)
         all_time_dict = simple_merge_dict_list(time_trackers)
@@ -420,6 +427,9 @@ class Protenix(nn.Module):
             inplace_safe=inplace_safe,
             chunk_size=chunk_size,
         )
+        if getattr(self.configs, "save_s_and_z", False):
+            pred_dict["pairformer_s"] = s.detach()
+            pred_dict["pairformer_z"] = z.detach()
         if mode == "inference":
             keys_to_delete = []
             for key in input_feature_dict.keys():

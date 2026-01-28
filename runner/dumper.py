@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import pickle
 from pathlib import Path
 
 import numpy as np
@@ -146,6 +147,13 @@ class DataDumper:
             seed=seed,
             sorted_indices=sorted_indices,
         )
+        if "pairformer_s" in pred_dict and "pairformer_z" in pred_dict:
+            self._save_pairformer_embeddings(
+                pred_dict=pred_dict,
+                prediction_save_dir=prediction_save_dir,
+                sample_name=pdb_id,
+                seed=seed,
+            )
 
     def _save_structure(
         self,
@@ -223,3 +231,23 @@ class DataDumper:
                     f"{sample_name}_full_data_sample_{rank}.json",
                 )
                 save_json(data["full_data"][idx], output_fpath, indent=None)
+
+    def _save_pairformer_embeddings(
+        self,
+        pred_dict: dict,
+        prediction_save_dir: str,
+        sample_name: str,
+        seed: int,
+    ) -> None:
+        output_fpath = os.path.join(
+            prediction_save_dir,
+            f"{sample_name}_pairformer_s_z.pkl",
+        )
+        s = pred_dict["pairformer_s"]
+        z = pred_dict["pairformer_z"]
+        if torch.is_tensor(s):
+            s = s.detach().cpu()
+        if torch.is_tensor(z):
+            z = z.detach().cpu()
+        with open(output_fpath, "wb") as f:
+            pickle.dump({"s": s, "z": z, "seed": seed}, f)
