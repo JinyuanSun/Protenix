@@ -36,4 +36,5 @@ inference_configs = {
     "use_template": False,
     "use_rna_msa": False,
     "use_seeds_in_json": False,
+    "save_feat": False,
 }

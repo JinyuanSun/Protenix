@@ -14,6 +14,7 @@
 import json
 import logging
 import os
+import pickle
 import time
 import traceback
 import urllib.request
@@ -470,6 +471,17 @@ def infer_predict(runner: InferenceRunner, configs: Any) -> None:
                 new_configs = update_inference_configs(configs, data["N_token"].item())
                 runner.update_model_configs(new_configs)
                 prediction = runner.predict(data)
+                if configs.save_feat and "_save_feat" in prediction:
+                    save_feat_data = prediction.pop("_save_feat")
+                    dump_dir = runner.dumper._get_dump_dir("", sample_name, seed)
+                    os.makedirs(dump_dir, exist_ok=True)
+                    feat_path = opjoin(dump_dir, "features.pkl")
+                    try:
+                        with open(feat_path, "wb") as pf:
+                            pickle.dump(save_feat_data, pf)
+                        logger.info(f"Saved features to {feat_path}")
+                    except Exception as e:
+                        logger.error(f"Failed to save features to {feat_path}: {e}")
                 runner.dumper.dump(
                     dataset_name="",
                     pdb_id=sample_name,

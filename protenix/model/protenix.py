@@ -417,6 +417,9 @@ class Protenix(nn.Module):
                 "resolved": _cat(pred_dicts, "resolved"),
             }
 
+            if "_save_feat" in pred_dicts[0]:
+                all_pred_dict["_save_feat"] = pred_dicts[0]["_save_feat"]
+
             all_log_dict = simple_merge_dict_list(log_dicts)
             all_time_dict = simple_merge_dict_list(time_trackers)
             return all_pred_dict, all_log_dict, all_time_dict
@@ -500,6 +503,16 @@ class Protenix(nn.Module):
             chunk_size=chunk_size,
             mc_dropout=mc_dropout,
         )
+
+        if getattr(self.configs, "save_feat", False):
+            pred_dict["_save_feat"] = {
+                "s": s.detach().cpu(),
+                "z": z.detach().cpu(),
+                "feat": {
+                    k: v.detach().cpu() if isinstance(v, torch.Tensor) else v
+                    for k, v in input_feature_dict.items()
+                },
+            }
 
         keys_to_delete = []
         for key in input_feature_dict.keys():
